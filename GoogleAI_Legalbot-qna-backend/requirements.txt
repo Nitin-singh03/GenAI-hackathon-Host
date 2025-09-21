@@ -99,3 +99,4 @@ zstandard==0.24.0
 langchain_google_genai
 uvicorn[standard]
 fastapi
+python-multipart
