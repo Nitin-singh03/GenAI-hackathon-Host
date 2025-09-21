@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 import ReadAloudButton from './ReadAloudButton';
+import MarkdownRenderer from './MarkdownRenderer';
 
 function ChatSection({ document, preferences }) {
   const [messages, setMessages] = useState([]);
@@ -159,7 +160,13 @@ function ChatSection({ document, preferences }) {
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
-              <p className="leading-relaxed">{message.content}</p>
+              {message.type === 'ai' ? (
+                <div className="prose prose-sm max-w-none">
+                  <MarkdownRenderer content={message.content} />
+                </div>
+              ) : (
+                <p className="leading-relaxed">{message.content}</p>
+              )}
               {message.type === 'ai' && preferences.readAloudEnabled && (
                 <div className="mt-2">
                   <ReadAloudButton text={message.content} />
