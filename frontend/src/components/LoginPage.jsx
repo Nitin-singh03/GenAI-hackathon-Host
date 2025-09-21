@@ -14,7 +14,7 @@ const LoginPage = () => {
     setError(''); // Clear previous errors
 
     try {
-      const response = await axios.post('http://localhost:4000/login', {
+      const response = await axios.post('https://genai-hackathon-host.onrender.com/login', {
         email,
         password,
       });

@@ -18,7 +18,7 @@ function ChatSection({ document, preferences }) {
   const loadChatHistory = async (documentId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/chat/${documentId}`, {
+      const response = await fetch(`https://genai-hackathon-host.onrender.com/chat/${documentId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -57,7 +57,7 @@ function ChatSection({ document, preferences }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4000/ask', {
+      const response = await fetch('https://genai-hackathon-host.onrender.com/ask', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

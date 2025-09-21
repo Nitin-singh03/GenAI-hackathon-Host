@@ -4,7 +4,7 @@ const mammoth = require("mammoth");
 const axios = require("axios");
 const documentModel = require("../models/documentModel.js");
 
-const PYTHON_AI_SERVER = process.env.PYTHON_AI_SERVER || 'http://localhost:8000';
+const PYTHON_AI_SERVER = process.env.PYTHON_AI_SERVER || 'https://legal-ai-python.onrender.com';
 
 const extractPdfText = (buffer) => {
   return new Promise((resolve, reject) => {

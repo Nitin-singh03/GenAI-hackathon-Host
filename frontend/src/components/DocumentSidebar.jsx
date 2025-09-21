@@ -13,7 +13,7 @@ function DocumentSidebar({ onDocumentSelect, selectedDocumentId, onDocumentDelet
   const fetchDocuments = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4000/documents', {
+      const response = await fetch('https://genai-hackathon-host.onrender.com/documents', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -41,7 +41,7 @@ function DocumentSidebar({ onDocumentSelect, selectedDocumentId, onDocumentDelet
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/document/${documentId}`, {
+      const response = await fetch(`https://genai-hackathon-host.onrender.com/document/${documentId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

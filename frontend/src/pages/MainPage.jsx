@@ -41,7 +41,7 @@ function MainPage() {
       const token = localStorage.getItem('token');
       setUploadProgress({ step: 1, message: 'Extracting text from document...', isProcessing: true });
       
-      const response = await fetch('http://localhost:4000/upload', {
+      const response = await fetch('https://genai-hackathon-host.onrender.com/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -65,7 +65,7 @@ function MainPage() {
   const summarizeDocument = async (documentId, level = 'beginner') => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4000/summarize', {
+      const response = await fetch('https://genai-hackathon-host.onrender.com/summarize', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -149,7 +149,7 @@ function MainPage() {
     // Load document details
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/document/${document._id}`, {
+      const response = await fetch(`https://genai-hackathon-host.onrender.com/document/${document._id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
