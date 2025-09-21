@@ -1,0 +1,612 @@
+Python Basics & File I/O
+Python
+
+
+
+# Create and write to a text file.
+file_content = """Hello this is Tanmay Pandey
+How is everyone doing?
+Hope all is well"""
+
+with open("file1.txt", 'w') as f:
+    f.write(file_content)
+
+# Read and print the entire file content.
+with open("file1.txt", 'r') as file1:
+    print(file1.read())
+
+# Append a new line to an existing file.
+with open("file1.txt", 'a') as f1:
+    f1.write("\nThis is a new line that I am adding")
+
+# Read the modified file line by line and print.
+with open("file1.txt", 'r') as f1:
+    for line in f1:
+        print(line, end='')
+
+# Copy the contents of file1.txt to a new file, file2.txt.
+with open("file2.txt", 'w') as f2:
+    with open("file1.txt", 'r') as f1:
+        for line in f1:
+            f2.write(line)
+
+# Read the newly created file2.txt to verify its contents.
+with open("file2.txt", 'r') as f2:
+    content = f2.read()
+    print(content)
+2. Data Cleaning, Preprocessing, & EDA (Automobile Dataset)
+Python
+
+# Import necessary libraries for data manipulation and visualization.
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Define the URL and headers to load the automobile dataset.
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-DA0101EN-SkillsNetwork/labs/Data%20files/auto.csv"
+headers = [
+    "symboling", "normalized-losses", "make", "fuel-type", "aspiration", "num-of-doors",
+    "body-style", "drive-wheels", "engine-location", "wheel-base", "length", "width",
+    "height", "curb-weight", "engine-type", "num-of-cylinders", "engine-size",
+    "fuel-system", "bore", "stroke", "compression-ratio", "horsepower", "peak-rpm",
+    "city-mpg", "highway-mpg", "price"
+]
+
+# Read the CSV from the URL into a pandas DataFrame.
+df_auto = pd.read_csv(url, names=headers)
+
+# Display the first few rows of the dataset.
+df_auto.head()
+
+# Replace placeholder '?' with NumPy's Not a Number (NaN) for proper handling.
+df_auto.replace("?", np.nan, inplace=True)
+
+# Check for missing values in each column.
+print("Missing values per column:")
+print(df_auto.isnull().sum())
+
+# Convert columns with numeric data from 'object' type to a numeric type.
+numeric_cols = ["normalized-losses", "bore", "stroke", "horsepower", "peak-rpm", "price"]
+for col in numeric_cols:
+    df_auto[col] = pd.to_numeric(df_auto[col])
+
+# Impute missing numeric values with the mean of their respective columns.
+for col in numeric_cols:
+    mean_val = df_auto[col].mean()
+    df_auto[col].fillna(mean_val, inplace=True)
+
+# Impute the 'num-of-doors' categorical column with the most frequent value (mode).
+mode_doors = df_auto['num-of-doors'].mode()[0]
+df_auto['num-of-doors'].fillna(mode_doors, inplace=True)
+
+# Feature Engineering: Convert 'city-mpg' and 'highway-mpg' to Liters per 100km.
+df_auto["city-L/100km"] = 235 / df_auto["city-mpg"]
+df_auto["highway-L/100km"] = 235 / df_auto["highway-mpg"]
+
+# Normalize length, width, and height by dividing by their maximum values.
+df_auto['length'] = df_auto['length'] / df_auto['length'].max()
+df_auto['width'] = df_auto['width'] / df_auto['width'].max()
+df_auto['height'] = df_auto['height'] / df_auto['height'].max()
+
+# Data Binning: Create horsepower categories (Low, Medium, High).
+bins = np.linspace(min(df_auto["horsepower"]), max(df_auto["horsepower"]), 4)
+group_names = ["Low", "Medium", "High"]
+df_auto["bin_hp"] = pd.cut(df_auto["horsepower"], bins, labels=group_names, include_lowest=True)
+
+# Plot the distribution of the new horsepower bins.
+df_auto["bin_hp"].value_counts().plot(kind="bar")
+plt.xlabel("Horsepower Bins")
+plt.ylabel("Number of Cars")
+plt.title("Distribution of Horsepower Bins")
+plt.show()
+
+# One-Hot Encoding: Convert categorical variables 'fuel-type' and 'aspiration' into dummy/indicator variables.
+fuel_dummies = pd.get_dummies(df_auto["fuel-type"])
+asp_dummies = pd.get_dummies(df_auto["aspiration"])
+
+# Concatenate the new dummy columns with the original dataframe.
+df_auto = pd.concat([df_auto, fuel_dummies], axis=1)
+df_auto = pd.concat([df_auto, asp_dummies], axis=1)
+
+# Drop the original categorical columns.
+df_auto.drop(["fuel-type", "aspiration"], axis=1, inplace=True)
+
+df_auto.head()
+
+# Visualization: Create a box plot to see the price distribution across different car manufacturers.
+plt.figure(figsize=(14, 8))
+sns.boxplot(x="make", y="price", data=df_auto)
+plt.xticks(rotation=90)
+plt.title("Price Distribution by Make")
+plt.show()
+
+# Visualization: Generate a correlation matrix heatmap for numeric features.
+numeric_cols = df_auto.select_dtypes(include=np.number)
+corr_matrix = numeric_cols.corr()
+plt.figure(figsize=(12, 10))
+sns.heatmap(corr_matrix, annot=True, cmap="coolwarm")
+plt.title("Correlation Matrix of Numeric Features")
+plt.show()
+3. Simple & Multiple Linear Regression (Fuel Consumption Dataset)
+Python
+
+# Import libraries for linear regression.
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Load the fuel consumption dataset.
+df_fuel = pd.read_csv('FuelConsumption.csv')
+
+# Simple Linear Regression: Engine Size vs. CO2 Emissions
+
+# Prepare the data: X is the feature (independent), y is the target (dependent).
+X_simple = df_fuel[['ENGINESIZE']]
+y_simple = df_fuel['CO2EMISSIONS']
+
+# Split the data into training (80%) and testing (20%) sets.
+X_train, X_test, y_train, y_test = train_test_split(X_simple, y_simple, test_size=0.2, random_state=42)
+
+# Create and train the linear regression model.
+regr = LinearRegression()
+regr.fit(X_train, y_train)
+
+# Print the learned coefficients and intercept.
+print('Coefficients:', regr.coef_)
+print('Intercept:', regr.intercept_)
+
+# Plot the regression line over the actual data points.
+plt.scatter(X_simple, y_simple, color='blue', alpha=0.5)
+plt.plot(X_train, regr.coef_[0]*X_train + regr.intercept_, '-r', linewidth=2)
+plt.xlabel("Engine size")
+plt.ylabel("CO2 Emission")
+plt.title("Simple Linear Regression Fit")
+plt.show()
+
+# Evaluate the simple linear regression model on the test data.
+y_pred = regr.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"Mean Squared Error: {mse:.2f}")
+print(f"R2-score: {r2:.2f}")
+
+# Multiple Linear Regression: Using multiple features to predict CO2 Emissions.
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+# Check for multicollinearity using Variance Inflation Factor (VIF).
+# A VIF > 5 or 10 indicates high correlation between features.
+X_vif_check = df_fuel[['ENGINESIZE', 'CYLINDERS', 'FUELCONSUMPTION_CITY', 'FUELCONSUMPTION_HWY']]
+vif_data = pd.DataFrame()
+vif_data["feature"] = X_vif_check.columns
+vif_data["VIF"] = [variance_inflation_factor(X_vif_check.values, i) for i in range(len(X_vif_check.columns))]
+
+print("VIF Scores:")
+print(vif_data)
+
+# Prepare data for multiple regression.
+X_multi = df_fuel[['ENGINESIZE', 'CYLINDERS', 'FUELCONSUMPTION_CITY', 'FUELCONSUMPTION_HWY']]
+y_multi = df_fuel['CO2EMISSIONS']
+
+# Split, train, and evaluate the multiple regression model.
+X_train_m, X_test_m, y_train_m, y_test_m = train_test_split(X_multi, y_multi, test_size=0.2, random_state=42)
+regr_multi = LinearRegression()
+regr_multi.fit(X_train_m, y_train_m)
+
+# Evaluate the model.
+y_pred_m = regr_multi.predict(X_test_m)
+mse_m = mean_squared_error(y_test_m, y_pred_m)
+r2_m = r2_score(y_test_m, y_pred_m)
+
+print(f"Multiple Regression MSE: {mse_m:.2f}")
+print(f"Multiple Regression R2-score: {r2_m:.2f}")
+4. Logistic Regression & Regularization
+Python
+
+# Import libraries for classification, scaling, and evaluation.
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
+from sklearn.model_selection import GridSearchCV
+
+# --- Part A: Binary Logistic Regression (Diabetes Dataset) ---
+
+# Load the diabetes dataset.
+df_diabetes = pd.read_csv('diabetes.csv')
+
+# Basic preprocessing: replace 0s in certain columns with the column median.
+cols_to_replace = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
+for col in cols_to_replace:
+    df_diabetes[col] = df_diabetes[col].replace(0, df_diabetes[col].median())
+
+# Prepare features (X) and target (y).
+X_d = df_diabetes.drop('Outcome', axis=1)
+y_d = df_diabetes['Outcome']
+
+# Split data and scale features for better model performance.
+X_train_d, X_test_d, y_train_d, y_test_d = train_test_split(X_d, y_d, test_size=0.2, random_state=24, stratify=y_d)
+scaler_d = StandardScaler()
+X_train_d_scaled = scaler_d.fit_transform(X_train_d)
+X_test_d_scaled = scaler_d.transform(X_test_d)
+
+# Train a standard logistic regression model.
+clf_diabetes = LogisticRegression(random_state=24, max_iter=1000)
+clf_diabetes.fit(X_train_d_scaled, y_train_d)
+
+# Make predictions and evaluate.
+y_pred_d = clf_diabetes.predict(X_test_d_scaled)
+accuracy_d = accuracy_score(y_test_d, y_pred_d)
+print(f"Diabetes Model Accuracy: {accuracy_d:.4f}")
+print("\nClassification Report:")
+print(classification_report(y_test_d, y_pred_d))
+
+# Plot the confusion matrix to visualize model performance.
+cm_d = confusion_matrix(y_test_d, y_pred_d)
+disp_d = ConfusionMatrixDisplay(confusion_matrix=cm_d, display_labels=['No Diabetes', 'Diabetes'])
+disp_d.plot(cmap='Blues')
+plt.title('Confusion Matrix - Diabetes Dataset')
+plt.show()
+
+# --- Part B: Multinomial Logistic Regression (Fuel Consumption Dataset) ---
+
+# Create a multiclass target by binning 'CO2EMISSIONS'.
+bins = [0, 200, 300, df_fuel['CO2EMISSIONS'].max()]
+labels = ['Low', 'Medium', 'High']
+df_fuel["CO2_Class"] = pd.cut(df_fuel["CO2EMISSIONS"], bins=bins, labels=labels, include_lowest=True)
+
+# Prepare data, including one-hot encoding for categorical features.
+X_multi_class = df_fuel.drop(columns=["CO2EMISSIONS", "CO2_Class"])
+y_multi_class = df_fuel["CO2_Class"]
+X_multi_class = pd.get_dummies(X_multi_class, drop_first=True)
+
+# Split the data.
+X_train_mc, X_test_mc, y_train_mc, y_test_mc = train_test_split(X_multi_class, y_multi_class, test_size=0.2, random_state=42)
+
+# Scale the features.
+scaler_mc = StandardScaler()
+X_train_mc_scaled = scaler_mc.fit_transform(X_train_mc)
+X_test_mc_scaled = scaler_mc.transform(X_test_mc)
+
+# Train and evaluate a multinomial logistic regression model with L2 (Ridge) penalty.
+clf_multi = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000, random_state=42)
+clf_multi.fit(X_train_mc_scaled, y_train_mc)
+
+y_pred_mc = clf_multi.predict(X_test_mc_scaled)
+accuracy_mc = accuracy_score(y_test_mc, y_pred_mc)
+
+print(f"Multinomial Logistic Regression Accuracy: {accuracy_mc:.4f}")
+print("\nClassification Report:")
+print(classification_report(y_test_mc, y_pred_mc))
+5. K-Nearest Neighbors (KNN)
+Python
+
+# Import KNN models and feature selection tools.
+from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
+from sklearn.feature_selection import SelectKBest, mutual_info_classif
+
+# --- Part A: KNN Regression (Fuel Consumption) ---
+
+# Select features identified as important in previous labs.
+selected_features = ['ENGINESIZE', 'CYLINDERS', 'FUELCONSUMPTION_HWY', 'FUELCONSUMPTION_COMB_MPG']
+X_knn_r = df_fuel[selected_features]
+y_knn_r = df_fuel['CO2EMISSIONS']
+
+# Split and scale the data.
+X_train_kr, X_test_kr, y_train_kr, y_test_kr = train_test_split(X_knn_r, y_knn_r, test_size=0.2, random_state=42)
+scaler_kr = StandardScaler()
+X_train_kr_scaled = scaler_kr.fit_transform(X_train_kr)
+X_test_kr_scaled = scaler_kr.transform(X_test_kr)
+
+# Find the optimal K by testing values from 1 to 20.
+k_values = range(1, 21)
+mse_scores = []
+for k in k_values:
+    knn = KNeighborsRegressor(n_neighbors=k)
+    knn.fit(X_train_kr_scaled, y_train_kr)
+    y_pred_kr = knn.predict(X_test_kr_scaled)
+    mse = mean_squared_error(y_test_kr, y_pred_kr)
+    mse_scores.append(mse)
+
+# Find the K with the lowest Mean Squared Error.
+best_k = k_values[np.argmin(mse_scores)]
+print(f"Best K for KNN Regressor: {best_k} with MSE: {min(mse_scores):.2f}")
+
+# Plot the MSE for each K value to visualize the 'elbow'.
+plt.figure(figsize=(10, 6))
+plt.plot(k_values, mse_scores, marker='o', linestyle='-')
+plt.xlabel("Number of Neighbors (K)")
+plt.ylabel("Mean Squared Error")
+plt.title("KNN Regression - Finding Best K")
+plt.grid(True)
+plt.show()
+
+# --- Part B: KNN Classification (Diabetes Dataset) ---
+
+# Use the preprocessed and scaled diabetes data from the previous section.
+
+# Find the optimal K for classification.
+k_values_c = range(1, 21)
+accuracy_scores_c = []
+for k in k_values_c:
+    knn_c = KNeighborsClassifier(n_neighbors=k)
+    knn_c.fit(X_train_d_scaled, y_train_d)
+    y_pred_kc = knn_c.predict(X_test_d_scaled)
+    acc = accuracy_score(y_test_d, y_pred_kc)
+    accuracy_scores_c.append(acc)
+
+# Find the K with the highest accuracy.
+best_k_c = k_values_c[np.argmax(accuracy_scores_c)]
+print(f"Best K for KNN Classifier: {best_k_c} with Accuracy: {max(accuracy_scores_c):.4f}")
+
+# Plot accuracy vs. K.
+plt.figure(figsize=(10, 6))
+plt.plot(k_values_c, accuracy_scores_c, marker='o', linestyle='-')
+plt.xlabel("Number of Neighbors (K)")
+plt.ylabel("Accuracy")
+plt.title("KNN Classification - Finding Best K")
+plt.grid(True)
+plt.show()
+6. Naive Bayes
+Python
+
+# Import Naive Bayes models and preprocessing tools.
+from sklearn.naive_bayes import CategoricalNB, GaussianNB
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
+# --- Part A: Categorical Naive Bayes (Mushroom Dataset) ---
+
+# Load mushroom data. All features are categorical.
+df_mush = pd.read_csv('mushrooms.csv')
+
+# Prepare features (X) and target (y).
+X_m = df_mush.drop('class', axis=1)
+y_m_raw = df_mush['class']
+
+# Encode features and target.
+oe = OrdinalEncoder()
+X_m_encoded = oe.fit_transform(X_m)
+
+le = LabelEncoder()
+y_m_encoded = le.fit_transform(y_m_raw)
+
+# Split the data.
+X_train_m, X_test_m, y_train_m, y_test_m = train_test_split(X_m_encoded, y_m_encoded, test_size=0.25, random_state=42)
+
+# Train and evaluate the Categorical Naive Bayes model.
+cnb = CategoricalNB()
+cnb.fit(X_train_m, y_train_m)
+y_pred_m = cnb.predict(X_test_m)
+
+accuracy_m = accuracy_score(y_test_m, y_pred_m)
+print(f"Mushroom Dataset (CategoricalNB) Accuracy: {accuracy_m:.4f}")
+print(classification_report(y_test_m, y_pred_m, target_names=le.classes_))
+
+# --- Part B: Gaussian Naive Bayes (Heart Disease Dataset) ---
+
+# Load the dataset, which has mixed data types.
+df_heart = pd.read_csv('StatlogHeart_NUMERICAL_CATEGORICAL_MIXED.csv')
+
+# Prepare features (X) and target (y).
+X_h = df_heart.drop('V14', axis=1)
+y_h = df_heart['V14']
+
+# Identify numeric and categorical columns.
+numeric_features = X_h.select_dtypes(include=np.number).columns
+categorical_features = X_h.select_dtypes(include=['object', 'category']).columns
+
+# Create a preprocessing pipeline.
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numeric_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    ])
+
+# Create the full pipeline with the preprocessor and GaussianNB classifier.
+clf_h = Pipeline(steps=[('preprocessor', preprocessor),
+                        ('classifier', GaussianNB())])
+
+# Split the data.
+X_train_h, X_test_h, y_train_h, y_test_h = train_test_split(X_h, y_h, test_size=0.25, random_state=42)
+
+# Train and evaluate the GaussianNB pipeline.
+clf_h.fit(X_train_h, y_train_h)
+y_pred_h = clf_h.predict(X_test_h)
+
+accuracy_h = accuracy_score(y_test_h, y_pred_h)
+print(f"Heart Disease (GaussianNB) Accuracy: {accuracy_h:.4f}")
+print(classification_report(y_test_h, y_pred_h))
+7. Perceptron & Multi-Layer Perceptron (MLP)
+Python
+
+# Import MLP models from scikit-learn.
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.datasets import load_iris, load_wine, fetch_california_housing
+
+# A simple Perceptron implementation from scratch to understand the algorithm.
+def perceptron_train(X, Y, lr=0.1, epochs=10):
+    W = np.zeros(X.shape[1] + 1) # +1 for the bias term
+    for _ in range(epochs):
+        for i in range(Y.shape[0]):
+            x = np.insert(X[i], 0, 1) # Add bias input
+            y_pred = 1 if np.dot(W, x) >= 0 else 0
+            error = Y[i] - y_pred
+            W += lr * error * x
+    return W
+
+def perceptron_predict(X, W):
+    y_out = []
+    for i in range(X.shape[0]):
+        x = np.insert(X[i], 0, 1)
+        y_out.append(1 if np.dot(W, x) >= 0 else 0)
+    return np.array(y_out)
+
+# Define inputs and expected outputs for the AND gate.
+X_gate = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y_and = np.array([0, 0, 0, 1])
+
+# Train and predict using the custom Perceptron.
+W_and = perceptron_train(X_gate, y_and)
+predictions_and = perceptron_predict(X_gate, W_and)
+
+print("Custom Perceptron AND Gate Predictions:", predictions_and)
+
+# The Perceptron cannot solve non-linearly separable problems like XOR.
+# We use a Multi-Layer Perceptron (MLP) from scikit-learn instead.
+
+# Define the XOR gate outputs.
+y_xor = np.array([0, 1, 1, 0])
+
+# Create an MLPClassifier with one hidden layer of 2 neurons.
+xor_clf = MLPClassifier(hidden_layer_sizes=(2,), activation='logistic', solver='lbfgs', max_iter=1000, random_state=42)
+xor_clf.fit(X_gate, y_xor)
+
+# Make predictions for the XOR gate.
+predictions_xor = xor_clf.predict(X_gate)
+print("MLP XOR Gate Predictions:", predictions_xor)
+
+# --- MLP for Iris Dataset Classification ---
+
+# Load and prepare the Iris dataset.
+iris = load_iris()
+X_iris, y_iris = iris.data, iris.target
+
+# Split and scale the data.
+X_train_i, X_test_i, y_train_i, y_test_i = train_test_split(X_iris, y_iris, test_size=0.3, random_state=42)
+scaler_i = StandardScaler()
+X_train_i_scaled = scaler_i.fit_transform(X_train_i)
+X_test_i_scaled = scaler_i.transform(X_test_i)
+
+# Create, train, and evaluate the MLP Classifier.
+mlp_iris = MLPClassifier(hidden_layer_sizes=(10, 10), max_iter=1000, random_state=42)
+mlp_iris.fit(X_train_i_scaled, y_train_i)
+y_pred_i = mlp_iris.predict(X_test_i_scaled)
+
+accuracy_i = accuracy_score(y_test_i, y_pred_i)
+print(f"Iris MLP Classifier Accuracy: {accuracy_i:.4f}")
+
+# Plot the confusion matrix for the Iris classification.
+cm_i = confusion_matrix(y_test_i, y_pred_i)
+disp_i = ConfusionMatrixDisplay(confusion_matrix=cm_i, display_labels=iris.target_names)
+disp_i.plot(cmap='Blues')
+plt.title('Confusion Matrix - Iris MLP')
+plt.show()
+
+# --- MLP for California Housing Regression ---
+
+# Load and prepare the housing data.
+housing = fetch_california_housing()
+X_house, y_house = housing.data, housing.target
+
+# Split and scale the data.
+X_train_h, X_test_h, y_train_h, y_test_h = train_test_split(X_house, y_house, test_size=0.3, random_state=42)
+scaler_h = StandardScaler()
+X_train_h_scaled = scaler_h.fit_transform(X_train_h)
+X_test_h_scaled = scaler_h.transform(X_test_h)
+
+# Create, train, and evaluate the MLP Regressor.
+mlp_reg = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42, learning_rate='adaptive')
+mlp_reg.fit(X_train_h_scaled, y_train_h)
+y_pred_h = mlp_reg.predict(X_test_h_scaled)
+
+mse_h = mean_squared_error(y_test_h, y_pred_h)
+r2_h = r2_score(y_test_h, y_pred_h)
+
+print(f"Housing MLP Regressor MSE: {mse_h:.4f}")
+print(f"Housing MLP Regressor R2-score: {r2_h:.4f}")
+
+# Plot actual vs. predicted values for the regression task.
+plt.figure(figsize=(8, 8))
+plt.scatter(y_test_h, y_pred_h, alpha=0.3)
+plt.plot([y_test_h.min(), y_test_h.max()], [y_test_h.min(), y_test_h.max()], '--r', linewidth=2)
+plt.xlabel('Actual Values')
+plt.ylabel('Predicted Values')
+plt.title('Actual vs. Predicted Housing Prices')
+plt.show()
+
+
+
+
+
+hidden layer feature
+
+# keras_extract_features.py
+import numpy as np
+from tensorflow import keras
+from tensorflow.keras import layers
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+import pandas as pd
+
+# 1. Load small dataset (MNIST)
+(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+x_train = x_train.astype("float32") / 255.0
+x_test  = x_test.astype("float32") / 255.0
+# expand channels
+x_train = np.expand_dims(x_train, -1)  # shape (N,28,28,1)
+x_test  = np.expand_dims(x_test, -1)
+
+# use a small subset for speed
+n_train = 10000
+n_test  = 2000
+x_train_s = x_train[:n_train]; y_train_s = y_train[:n_train]
+x_test_s  = x_test[:n_test];  y_test_s  = y_test[:n_test]
+
+# 2. Build a small CNN model
+inputs = keras.Input(shape=(28,28,1))
+x = layers.Conv2D(32, 3, activation="relu")(inputs)
+x = layers.MaxPooling2D(2)(x)
+x = layers.Conv2D(64, 3, activation="relu")(x)
+x = layers.MaxPooling2D(2)(x)
+x = layers.Flatten()(x)
+# --- This is the hidden feature layer we want to extract ---
+features = layers.Dense(128, activation="relu", name="feature_layer")(x)
+# final classifier
+outputs = layers.Dense(10, activation="softmax")(features)
+
+model = keras.Model(inputs=inputs, outputs=outputs)
+model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+
+# 3. Train quickly
+model.fit(x_train_s, y_train_s, validation_split=0.1, epochs=3, batch_size=128)
+
+# 4. Create a model that outputs the feature layer
+feature_extractor = keras.Model(inputs=model.input,
+                                outputs=model.get_layer("feature_layer").output)
+# 5. Extract features
+train_feats = feature_extractor.predict(x_train_s, batch_size=256)
+test_feats  = feature_extractor.predict(x_test_s, batch_size=256)
+print("train_feats.shape:", train_feats.shape)  # (n_train, 128)
+
+# 6. Save features to CSV (optional)
+df_train = pd.DataFrame(train_feats)
+df_train["label"] = y_train_s
+df_train.to_csv("mnist_train_features.csv", index=False)
+
+# 7. Use features to train a simple downstream classifier (logistic regression)
+clf = LogisticRegression(max_iter=1000, multi_class="multinomial", solver="saga")
+clf.fit(train_feats, y_train_s)
+preds = clf.predict(test_feats)
+print("Downstream classifier accuracy on test subset:", accuracy_score(y_test_s, preds))
+
+# 8. Visualization (PCA and t-SNE)
+pca = PCA(n_components=2)
+proj_pca = pca.fit_transform(test_feats)
+print("PCA projection shape:", proj_pca.shape)
+
+# t-SNE (slower) -> reduce to 50 dims first if needed
+from sklearn.decomposition import TruncatedSVD
+svd = TruncatedSVD(n_components=50, random_state=42)
+reduced_50 = svd.fit_transform(test_feats)
+tsne = TSNE(n_components=2, random_state=42, init="pca", perplexity=30)
+proj_tsne = tsne.fit_transform(reduced_50)
+print("t-SNE projection shape:", proj_tsne.shape)
+
+# save projections
+pd.DataFrame(proj_tsne, columns=["x","y"]).assign(label=y_test_s).to_csv("mnist_test_tsne.csv", index=False)
+
+
