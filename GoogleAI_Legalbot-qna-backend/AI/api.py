@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from summarization import final_summary_from_text
-from qna import init_chat_from_text
+from .summarization import final_summary_from_text
+from .qna import init_chat_from_text
 import shutil
 import os
 from pydantic import BaseModel
@@ -91,26 +91,22 @@ async def summarize_and_store(file: UploadFile = File(...)):
 @app.post("/ask")
 async def ask_question(question: str = Form(...)):
     try:
-        print(f"Received question: {question}")
+        if not CURRENT_TEXT:
+            return {"question": question, "answer": "No document loaded. Please upload a document first."}
         
-        # Use Google Gemini directly
-        from google.generativeai import GenerativeModel
         import google.generativeai as genai
-        import os
-        
-        # Configure Google AI
         genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
-        model = GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # Generate response
-        response = model.generate_content(question)
-        answer = response.text
+        prompt = f"""Based on this document:
+        {CURRENT_TEXT[:4000]}
         
-        print(f"Generated answer: {answer}")
-        return {"question": question, "answer": answer}
+        Question: {question}
+        
+        Answer based only on the document content:"""
+        
+        response = model.generate_content(prompt)
+        return {"question": question, "answer": response.text}
         
     except Exception as e:
-        print(f"Q&A error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return {"question": question, "answer": f"Error: {str(e)}. Please check if Google AI API key is configured correctly."}
+        return {"question": question, "answer": f"Error: {str(e)}"}

@@ -1,8 +1,8 @@
 import getpass
 import os
 from langchain.chat_models import init_chat_model
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_core.vectorstores import InMemoryVectorStore
+
+
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -25,19 +25,9 @@ def obtain_chat_model():
     llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
     return llm
 
-def embedding_model():
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
-        google_api_key=os.environ.get("GOOGLE_API_KEY")
-    )
-    return embeddings
 
-def init_vector_store():
-    global VECTOR_STORE
-    if VECTOR_STORE is None:
-        embeddings = embedding_model()
-        VECTOR_STORE = InMemoryVectorStore(embeddings)
-    return VECTOR_STORE
+
+
 
 # def vector_store():
 #     embeddings = embedding_model()
@@ -63,16 +53,7 @@ async def store_to_vectorDB(file_path):
     vs.add_documents(documents=all_splits)
     return 
 
-@tool(response_format="content_and_artifact")
-def retrieve(query: str):
-    """Retrieve information related to a query."""
-    vs = init_vector_store()
-    retrieved_docs = vs.similarity_search(query, k=2)
-    serialized = "\n\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
-        for doc in retrieved_docs
-    )
-    return serialized, retrieved_docs
+
 
 def query_or_respond(state: MessagesState):
     """Generate tool call for retrieval or respond."""
@@ -192,11 +173,9 @@ async def store_text_to_vectorDB(text_content: str):
     return
 
 async def init_chat_from_text(text_content: str):
-    global GRAPH, BOT
-    await store_text_to_vectorDB(text_content)
-    GRAPH = define_graph()
-    BOT = Chatbot(GRAPH)
-    return BOT, GRAPH
+    global CURRENT_TEXT
+    CURRENT_TEXT = text_content
+    return None, None
 
 async def init_chat(file_path: str):
     global GRAPH, BOT

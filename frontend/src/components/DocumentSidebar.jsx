@@ -86,11 +86,18 @@ function DocumentSidebar({ onDocumentSelect, selectedDocumentId, onDocumentDelet
 
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 space-y-3">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <FileText className="w-5 h-5" />
           Document History
         </h2>
+        <button
+          onClick={() => window.location.reload()}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+        >
+          <FileText className="w-4 h-4" />
+          Upload New Document
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
