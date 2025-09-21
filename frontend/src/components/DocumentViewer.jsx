@@ -124,21 +124,7 @@ function DocumentViewer({ document, onGenerateSummary, loading }) {
                 {decodeHtmlEntities(document.comprehensiveSummary.documentSummary.overview)}
               </p>
             )}
-            {document.comprehensiveSummary?.documentSummary?.keyPoints && (
-              <div className="bg-white rounded-lg p-4 border border-blue-100">
-                <h3 className="font-semibold text-blue-900 mb-2">Key Points:</h3>
-                <ul className="space-y-1">
-                  {document.comprehensiveSummary.documentSummary.keyPoints.map((point, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-1">•</span>
-                      <span className="text-sm text-gray-700">
-                        {decodeHtmlEntities(point)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -286,11 +272,26 @@ function DocumentViewer({ document, onGenerateSummary, loading }) {
             </div>
           </div>
           <div className="bg-white bg-opacity-50 rounded-lg p-4 mb-3">
-            <h4 className="font-semibold mb-2">Risk Analysis:</h4>
-            <p className="text-sm">
-              {decodeHtmlEntities(structuredData?.overallRiskAssessment?.reason || document.comprehensiveSummary?.overallRiskAssessment?.riskAnalysis)}
-            </p>
-          </div>
+  <h4 className="font-semibold mb-2">Risk Analysis:</h4>
+  <p className="text-sm mb-4">  {/* Added margin-bottom for spacing */}
+    {decodeHtmlEntities(structuredData?.overallRiskAssessment?.reason || document.comprehensiveSummary?.overallRiskAssessment?.riskAnalysis)}
+  </p>
+
+  {/* High Risk Line */}
+  <div className="bg-red-500 text-white p-2 rounded mb-2">
+    High Risk Indicator
+  </div>
+
+  {/* Medium Risk Line */}
+  <div className="bg-yellow-400 text-black p-2 rounded mb-2">
+    Medium Risk Indicator
+  </div>
+
+  {/* Low Risk Line */}
+  <div className="bg-green-500 text-white p-2 rounded">
+    Low Risk Indicator
+  </div>
+</div>
           {(structuredData?.overallRiskAssessment?.recommendations || document.comprehensiveSummary?.overallRiskAssessment?.recommendations) && (
             <div className="bg-white bg-opacity-50 rounded-lg p-4 mb-3">
               <h4 className="font-semibold mb-2 flex items-center gap-2">
@@ -299,23 +300,6 @@ function DocumentViewer({ document, onGenerateSummary, loading }) {
               <p className="text-sm font-medium">
                 {decodeHtmlEntities(structuredData?.overallRiskAssessment?.recommendations || document.comprehensiveSummary?.overallRiskAssessment?.recommendations)}
               </p>
-            </div>
-          )}
-          {document.comprehensiveSummary?.overallRiskAssessment?.warningFlags && (
-            <div className="bg-white bg-opacity-50 rounded-lg p-4">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                🚩 Warning Flags:
-              </h4>
-              <ul className="space-y-1">
-                {document.comprehensiveSummary.overallRiskAssessment.warningFlags.map((flag, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-red-600 mt-1">•</span>
-                    <span className="text-sm font-medium">
-                      {decodeHtmlEntities(flag)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </div>
           )}
         </div>

@@ -1,35 +1,39 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('demo@gmail.com'); // demo email prefilled
+  const [password, setPassword] = useState('demo');     // demo password prefilled
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError(''); // Clear previous errors
-
+  // shared login function used by form submit and demo button
+  const loginWithCredentials = async (emailParam, passwordParam) => {
+    setError('');
     try {
       const response = await axios.post('https://genai-hackathon-host.onrender.com/login', {
-        email,
-        password,
+        email: emailParam,
+        password: passwordParam,
       });
 
       console.log('Login successful:', response.data);
-      // Example: store token in localStorage
       localStorage.setItem('token', response.data.token);
       navigate('/app');
-
-      // Optionally, redirect user after login
-      // window.location.href = '/app';
     } catch (err) {
       console.error('Login failed:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    await loginWithCredentials(email, password);
+  };
+
+  const handleDemoLogin = async () => {
+    // one-click demo login
+    await loginWithCredentials('demo@gmail.com', 'demo');
   };
 
   return (
@@ -79,6 +83,15 @@ const LoginPage = () => {
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
           >
             Sign In
+          </button>
+
+          {/* Demo login button — one click to login with prefilled credentials */}
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            className="w-full mt-2 border border-dashed border-gray-300 text-gray-700 font-medium py-2 rounded-lg transition-all duration-150 hover:bg-gray-50"
+          >
+            Demo Login (one click)
           </button>
         </form>
 
