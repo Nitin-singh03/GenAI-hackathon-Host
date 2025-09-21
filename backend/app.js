@@ -9,7 +9,8 @@ app.use(express.json());
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://gen-ai-hackathon-host.vercel.app'
+    'https://gen-ai-hackathon-host.vercel.app',
+    'https://gen-ai-hackathon-host-a4u7.vercel.app'
   ],
   methods: 'GET,POST,PUT,DELETE,PATCH',
   allowedHeaders: 'Content-Type,Authorization',

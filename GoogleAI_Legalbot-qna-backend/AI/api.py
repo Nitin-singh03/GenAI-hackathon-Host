@@ -16,6 +16,7 @@ app.add_middleware(
         "https://genai-hackathon-host.onrender.com",
         "http://localhost:5173",
         "https://gen-ai-hackathon-host.vercel.app",
+        "https://gen-ai-hackathon-host-a4u7.vercel.app",
         "*"
     ],
     allow_credentials=True,
