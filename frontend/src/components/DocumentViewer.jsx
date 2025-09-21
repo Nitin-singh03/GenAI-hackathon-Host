@@ -90,20 +90,6 @@ function DocumentViewer({ document, onGenerateSummary, loading }) {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-900">Document Overview</h2>
           <div className="flex gap-2">
-            {document.needsSummary && (
-              <button 
-                onClick={onGenerateSummary}
-                disabled={loading}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <FileText className="w-4 h-4" />
-                )}
-                Generate Summary
-              </button>
-            )}
             <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200">
               <Download className="w-4 h-4" />
               Export Summary
@@ -387,38 +373,22 @@ function DocumentViewer({ document, onGenerateSummary, loading }) {
             </div>
           </div>
         )) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No structured data found in this document</p>
-            <p className="text-sm text-gray-400 mt-1">The document may not contain standard legal terms</p>
-          </div>
-        )}
-
-        {/* Full Summary - Collapsible */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <button
-            onClick={() => toggleSection('summary')}
-            className="w-full bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
-          >
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Detailed Analysis</h3>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Document Summary</h3>
+              </div>
             </div>
-            {expandedSections.summary ? (
-              <ChevronUp className="w-5 h-5 text-gray-600" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-600" />
-            )}
-          </button>
-          
-          {expandedSections.summary && (
             <div className="p-6">
               <div className="prose prose-gray max-w-none">
                 <MarkdownRenderer content={decodeHtmlEntities(content.fullSummary)} />
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+
       </div>
     </div>
   );

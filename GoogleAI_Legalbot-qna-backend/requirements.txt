@@ -100,3 +100,4 @@ langchain_google_genai
 uvicorn[standard]
 fastapi
 python-multipart
+google-generativeai

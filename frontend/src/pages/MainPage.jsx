@@ -97,22 +97,28 @@ function MainPage() {
 
         if (uploadResponse?.documentId) {
           setCurrentDocumentId(uploadResponse.documentId);
-          setUploadProgress({ step: 2, message: 'Text extracted! Click Generate Summary for AI analysis.', isProcessing: false });
+          setUploadProgress({ step: 2, message: 'Generating AI summary...', isProcessing: true });
+          
+          // Auto-generate summary after upload
+          const summaryResponse = await summarizeDocument(uploadResponse.documentId, preferences.complexityLevel);
           
           setUploadedDocument({
             name: file.name,
             type: file.type,
             size: file.size,
             documentId: uploadResponse.documentId,
-            summaries: null,
-            structuredData: null,
-            needsSummary: true,
+            summaries: summaryResponse?.summary ? { [preferences.complexityLevel]: summaryResponse.summary } : null,
+            structuredData: summaryResponse?.structuredData,
+            comprehensiveSummary: summaryResponse?.comprehensiveSummary,
+            needsSummary: false,
             content: {
-              fullSummary: "Click 'Generate Summary' to analyze this document with AI.",
+              fullSummary: summaryResponse?.summary || "Document processed successfully.",
               language: "English",
               extractedText: uploadResponse.text
             }
           });
+          
+          setUploadProgress({ step: 3, message: 'AI analysis complete!', isProcessing: false });
         }
       } catch (error) {
         setUploadProgress({ step: 0, message: 'Upload failed. Please try again.', isProcessing: false });
